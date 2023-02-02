@@ -3,3 +3,9 @@ export interface User {
   email: string;
   password: string;
 }
+
+export interface LoginResponse extends User {
+  token: string;
+  expireIn: number;
+  loggedAt: Date;
+}

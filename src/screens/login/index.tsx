@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { SignIn } from "../../components/Forms/signIn";
 import { SignOn } from "../../components/Forms/signOn";
 import { Screen } from "../../components/screen";
 import { Container, ContainerForms, ContainerHeader, Forms, Header, PageSelectButton, PageSelectText, Underline } from "./styles";
@@ -66,7 +67,9 @@ export function Login() {
                             <SignOn
                                 onFocus={formInFocus}
                             /> :
-                            <></>
+                            <SignIn
+                                onFocus={formInFocus}
+                            />
                     }
                 </Forms>
 

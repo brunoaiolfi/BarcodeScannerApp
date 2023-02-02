@@ -13,7 +13,7 @@ export default function App() {
       <StatusBar hidden={true} />
 
       <NavigationIndex />
-    
+
     </ThemeProvider>
   );
 }

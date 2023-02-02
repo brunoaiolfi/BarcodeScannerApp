@@ -1,1 +1,1 @@
-export const userKey = "identification_Key";
+export const userKey = "userKey";

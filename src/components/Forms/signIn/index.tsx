@@ -8,25 +8,18 @@ import { useEffect } from "react";
 import { ErrorMessage } from "../../errorMessage";
 import { api } from "../../../services/axios/api";
 import { useAuth } from "../../../hook/useAuth";
-import { User } from "../../../models/interfaces/context/auth";
 import { useNavigation } from "@react-navigation/native";
 
 interface ISignOnProps {
     onFocus?: () => void;
 }
 
-interface ISignOn {
-    name: string;
+interface ISignIn {
     email: string;
     password: string;
 }
 
-
 const schema = Yup.object().shape({
-    name: Yup
-        .string()
-        .required('Nome é obrigatório!'),
-
     email: Yup
         .string()
         .email('Digite um email válido!')
@@ -37,33 +30,28 @@ const schema = Yup.object().shape({
         .required('Senha é obrigatória!'),
 })
 
-
-export function SignOn({ onFocus }: ISignOnProps) {
+export function SignIn({ onFocus }: ISignOnProps) {
 
     const navigation = useNavigation()
 
     const { signIn } = useAuth()
-    const { control, handleSubmit, formState: { errors } } = useForm<ISignOn>({
+
+    const { control, handleSubmit, formState: { errors } } = useForm<ISignIn>({
         resolver: yupResolver(schema)
     });
 
-    async function handleSignOn({ email, name, password }: ISignOn) {
+    async function handleSignOn({ email, password }: ISignIn) {
         try {
-            const { data } = await api.post<User>('/user', {
-                email, name, password
+            const loginResponse = await signIn({
+                email,
+                password
             })
-            if (data.email) {
-                const loginResponse = await signIn({
-                    email,
-                    password
-                })
 
-                if (loginResponse?.token) {
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Login' }],
-                    })
-                }
+            if (loginResponse?.token) {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Login' }],
+                })
             }
 
         } catch (error: any) {
@@ -74,29 +62,6 @@ export function SignOn({ onFocus }: ISignOnProps) {
     return (
         <Container>
             <Form>
-                <InputWrapper>
-                    <Label>
-                        Nome completo:
-                    </Label>
-                    {
-                        errors.name?.message &&
-                        <ErrorMessage message={errors.name.message} />
-                    }
-                    <Controller
-                        control={control}
-                        name="name"
-                        render={({ field: { value, onChange, onBlur } }) => (
-                            <InputTextComponent
-                                placeholder="Preencha seu nome"
-                                onFocus={onFocus}
-                                onBlur={onBlur}
-                                value={value}
-                                onChangeText={onChange}
-                            />
-                        )}
-                    />
-
-                </InputWrapper>
                 <InputWrapper>
                     <Label>
                         Email:
@@ -147,7 +112,7 @@ export function SignOn({ onFocus }: ISignOnProps) {
             <Footer>
                 <ButtonComponent
                     width="80%"
-                    title="Cadastrar-se"
+                    title="Entrar"
                     onPress={handleSubmit(handleSignOn)}
                 />
             </Footer>
