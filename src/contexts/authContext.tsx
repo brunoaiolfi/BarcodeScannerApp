@@ -9,106 +9,112 @@ import { LoginResponse } from "../models/interfaces/context/auth";
 import { api } from "../services/axios/api";
 
 interface AuthProps {
-    userLogged?: LoginResponse,
-    setUserlogged: (value: LoginResponse) => void,
-    signIn: (data: signIn) => Promise<LoginResponse | undefined>;
-    signOut: () => void;
-    verifyToken: (userInfos: LoginResponse) => void;
+  userLogged?: LoginResponse;
+  setUserlogged: (value: LoginResponse) => void;
+  signIn: (data: signIn) => Promise<LoginResponse | undefined>;
+  signOut: () => void;
+  verifyToken: (userInfos: LoginResponse) => void;
 }
 
 interface signIn {
-    email: string;
-    password: string;
+  email: string;
+  password: string;
 }
 
 export const AuthContext = createContext({} as AuthProps);
 
 export function AuthProvider({ children }: Children) {
+  const [userLogged, setUserlogged] = useState<LoginResponse>();
 
-    const [userLogged, setUserlogged] = useState<LoginResponse>()
+  const navigation = useNavigation();
 
-    const navigation = useNavigation()
+  useEffect(() => {
+    async function getUserInfosFromAsyncStorageAndVerifyToken() {
+      const tempUserLogged = await getUser();
 
-    useEffect(() => {
-        async function getUserInfosFromAsyncStorageAndVerifyToken() {
-            const tempUserLogged = await getUser();
-
-            if (tempUserLogged?.token) {
-                verifyToken(tempUserLogged)
-            }
-        }
-
-        getUserInfosFromAsyncStorageAndVerifyToken()
-    }, [])
-
-    async function signIn({ email, password }: signIn) {
-        try {
-            const { data } = await api.post<LoginResponse>('/login', {
-                email,
-                password
-            })
-
-            const { token } = data
-            api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-            setUserlogged(data)
-            setUser(data)
-            return data;
-        } catch (error: any) {
-            if (error.response.status === 404) {
-                Alert.alert("Nenhum usuário encontrado!", "Verifique se você preencheu tudo corretamente!")
-            }
-        }
+      if (tempUserLogged?.token) {
+        verifyToken(tempUserLogged);
+      }
     }
 
-    async function signOut() {
-        await deleteUser();
+    getUserInfosFromAsyncStorageAndVerifyToken();
+  }, []);
 
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Login' }],
-        })
+  async function signIn({ email, password }: signIn) {
+    try {
+      const { data } = await api.post<LoginResponse>("/login", {
+        email,
+        password,
+      });
 
+      const { token } = data;
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      setUserlogged(data);
+      setUser(data);
+
+      return data;
+    } catch (error: any) {
+      if (error.response.status === 404) {
+        Alert.alert(
+          "Nenhum usuário encontrado!",
+          "Verifique se você preencheu tudo corretamente!"
+        );
+      }
     }
+  }
 
-    /**
-      * 
-      * @param userInfos Dados do usuário
-      * 
-      * Função de verificar a validade do token
-      */
+  async function signOut() {
+    await deleteUser();
 
-    function verifyToken(userInfos: LoginResponse) {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+  }
 
-        // Armazena quadno que o usuário logou
-        const tempLoggedAt = new Date(userInfos.loggedAt)
+  /**
+   *
+   * @param userInfos Dados do usuário
+   *
+   * Função de verificar a validade do token
+   */
 
-        // Armazena quadno que o token vai expirar
-        const whenTokenExpire = tempLoggedAt.setHours(tempLoggedAt.getHours() + (userInfos.expireIn));
+  function verifyToken(userInfos: LoginResponse) {
+    // Armazena quadno que o usuário logou
+    const tempLoggedAt = new Date(userInfos.loggedAt);
 
-        // Caso o token vá expirar depois da data atual, então o token ainda é válido
-        if (isAfter(whenTokenExpire, new Date())) {
-            // Se o token ainda é válido, então faz o set do usuário
-            setUserlogged(userInfos)
-            console.log('token válido!')
+    // Armazena quadno que o token vai expirar
+    const whenTokenExpire = tempLoggedAt.setHours(
+      tempLoggedAt.getHours() + userInfos.expireIn
+    );
 
-        } else {
-            // Caso o token já tenha expirado, então faz o logout
-            signOut()
-            console.log('token inválido!')
-        }
+    // Caso o token vá expirar depois da data atual, então o token ainda é válido
+    if (isAfter(whenTokenExpire, new Date())) {
+      // Se o token ainda é válido, então faz o set do usuário
+      setUserlogged(userInfos);
+      console.log("token válido!");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
+    } else {
+      // Caso o token já tenha expirado, então faz o logout
+      signOut();
+      console.log("token inválido!");
     }
+  }
 
-    return (
-        <AuthContext.Provider
-            value={{
-                userLogged,
-                setUserlogged,
-                signIn,
-                signOut,
-                verifyToken
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    )
+  return (
+    <AuthContext.Provider
+      value={{
+        userLogged,
+        setUserlogged,
+        signIn,
+        signOut,
+        verifyToken,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }

@@ -1,5 +1,6 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import { StackScreenOptions } from '../../configs/navigation/stack/screen/options';
+import { Home } from '../../screens/Home';
 import { Login } from '../../screens/login';
 
 
@@ -11,6 +12,7 @@ export function IndexRoute() {
     return (
         <Navigator screenOptions={StackScreenOptions}>
             <Screen name="Login" component={Login} />
+            <Screen name="Home" component={Home} />
         </Navigator>
     );
 }

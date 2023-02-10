@@ -48,9 +48,10 @@ export function SignIn({ onFocus }: ISignOnProps) {
             })
 
             if (loginResponse?.token) {
+                console.log("Login concluded with success!")
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'Login' }],
+                    routes: [{ name: 'Home' }],
                 })
             }
 
