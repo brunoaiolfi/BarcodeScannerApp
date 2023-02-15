@@ -93,6 +93,10 @@ export function AuthProvider({ children }: Children) {
       // Se o token ainda é válido, então faz o set do usuário
       setUserlogged(userInfos);
       console.log("token válido!");
+
+      const { token } = userInfos;
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
       navigation.reset({
         index: 0,
         routes: [{ name: "Home" }],

@@ -30,3 +30,5 @@ export const Footer = styled.View`
 export const CameraIcon = styled(AntDesign)`
   color: ${({ theme }) => theme.colors.accent};
 `;
+
+export const ProductInfos = styled.Text``;
