@@ -20,6 +20,7 @@ import { useState } from "react";
 import { IProduct } from "../../models/interfaces/global/models/product";
 import { useAuth } from "../../hook/useAuth";
 import { ModalComponent } from "../../components/modal";
+import { BarcodeScannerComponent } from "../../components/barcodeScanner";
 
 interface ISearchItem {
   id: string;
@@ -41,13 +42,15 @@ export function Home() {
   const { userLogged } = useAuth();
 
   const [product, setProduct] = useState<IProduct>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProductModalOpen, setProductIsModalOpen] = useState(false);
+  const [isBarcodeScannerModalOpen, setIsBarcodeScannerModalOpen] =
+    useState(false);
 
   async function handleGetProduct({ id }: ISearchItem) {
     try {
       const product = await getProductById(id);
       setProduct(product);
-      setIsModalOpen(true);
+      setProductIsModalOpen(true);
     } catch (error) {
       Alert.alert(
         "Nenhum produto encontrado.",
@@ -66,54 +69,65 @@ export function Home() {
     }
   }
   return (
-    <Screen>
-      <Container>
-        <UserWellcome>
-          Olá {`\n`}
-          <Span>{userLogged?.name}</Span>
-        </UserWellcome>
+    <>
+      {isBarcodeScannerModalOpen && (
+        <BarcodeScannerComponent
+          handleClose={() => setIsBarcodeScannerModalOpen(false)}
+          callback={(barcodeEvent) =>
+            handleGetProduct({ id: barcodeEvent.data })
+          }
+        />
+      )}
+      <Screen>
+        <Container>
+          <UserWellcome>
+            Olá {`\n`}
+            <Span>{userLogged?.name}</Span>
+          </UserWellcome>
 
-        <Footer>
-          {errors.id?.message && <ErrorMessage message={errors.id.message} />}
-          <Controller
-            control={control}
-            name="id"
-            render={({ field: { value, onChange, onBlur } }) => (
-              <InputTextComponent
-                keyboardType="number-pad"
-                placeholder="Código do produto"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-              />
-            )}
-          />
-          <ButtonComponent
-            variant={ButtonVariant.blank}
-            icon={<CameraIcon name="barcode" size={24} />}
-            margin="16px 0px"
-          />
-          <ButtonComponent
-            title="Pesquisar"
-            onPress={handleSubmit(handleGetProduct)}
-          />
-        </Footer>
-      </Container>
+          <Footer>
+            {errors.id?.message && <ErrorMessage message={errors.id.message} />}
+            <Controller
+              control={control}
+              name="id"
+              render={({ field: { value, onChange, onBlur } }) => (
+                <InputTextComponent
+                  keyboardType="number-pad"
+                  placeholder="Código do produto"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+            <ButtonComponent
+              onPress={() => setIsBarcodeScannerModalOpen(true)}
+              variant={ButtonVariant.blank}
+              icon={<CameraIcon name="barcode" size={24} />}
+              margin="16px 0px"
+            />
+            <ButtonComponent
+              title="Pesquisar"
+              onPress={handleSubmit(handleGetProduct)}
+            />
+          </Footer>
+        </Container>
 
-      <ModalComponent
-        title="Produto"
-        modalVisible={isModalOpen}
-        handleClose={() => setIsModalOpen(false)}
-      >
-        <ProductInfos>Produto: {product?.name}</ProductInfos>
-        <ProductInfos>
-          Valor: R$
-          {product?.value.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          })}
-        </ProductInfos>
-      </ModalComponent>
-    </Screen>
+        <ModalComponent
+          title="Produto"
+          modalVisible={isProductModalOpen}
+          handleClose={() => setProductIsModalOpen(false)}
+        >
+          <ProductInfos>Produto: {product?.name}</ProductInfos>
+          <ProductInfos>
+            Valor: R$
+            {product?.value.toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            })}
+          </ProductInfos>
+        </ModalComponent>
+      </Screen>
+    </>
   );
 }
