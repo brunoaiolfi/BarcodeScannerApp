@@ -1,5 +1,6 @@
 import { BarCodeEvent, BarCodeScanner } from "expo-barcode-scanner";
 import { useEffect, useState } from "react";
+import { getBarcodePermission } from "../../localStorage/data/permissions/barcode/get/getBarcodePermission";
 import { ButtonComponent } from "../button";
 import { Scanner, ScannerContainer } from "./styles";
 
@@ -16,10 +17,10 @@ export function BarcodeScannerComponent({
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
-      if (!hasPermission) {
+      const permissionSaved = await getBarcodePermission()
+      if (!permissionSaved) {
         const { status } = await BarCodeScanner.requestPermissionsAsync();
         setHasPermission(status === "granted");
-        
       }
     };
 
